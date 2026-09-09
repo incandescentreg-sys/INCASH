@@ -19,8 +19,20 @@ module.exports = async function handler(req, res) {
   const { action } = req.body || {};
 
   try {
-    // GET /api/admin — list all players with basic info
+    // GET — lightweight status check (no DB call)
     if (req.method === 'GET') {
+      res.status(200).json({ ok: true, admin: true });
+      return;
+    }
+
+    // action: verify (used by frontend to check admin status, no DB)
+    if (action === 'verify') {
+      res.status(200).json({ ok: true, admin: true });
+      return;
+    }
+
+    // GET /api/admin — list all players with basic info
+    if (action === 'list') {
       const { rows } = await sql`
         SELECT telegram_id, name, username, banned,
                data->>'balance' AS balance,
@@ -138,7 +150,8 @@ module.exports = async function handler(req, res) {
 
     // action: search by username
     if (action === 'search') {
-      const q = '%' + (req.body.query || '') + '%';
+      let q = '%' + (req.body.query || '') + '%';
+      if (q === '%%') q = '%';
       const { rows } = await sql`
         SELECT telegram_id, name, username, banned,
                data->>'balance' AS balance,

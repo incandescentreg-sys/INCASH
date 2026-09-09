@@ -52,8 +52,8 @@ const Admin = (() => {
   }
 
   async function checkAdmin() {
-    const json = await apiAdmin(null);
-    if (json && json.players) {
+    const json = await apiAdmin({ action: 'verify' });
+    if (json && json.admin) {
       isAdminUser = true;
       document.getElementById('devBtn').style.display = 'block';
     } else if (json && json.error === 'forbidden') {
