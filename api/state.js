@@ -1,20 +1,27 @@
 const { sql } = require('@vercel/postgres');
+const { validateInitData, isAdmin } = require('../lib/auth');
+
+function extractTelegramId(headers, body, query) {
+  const initData = headers['x-telegram-init-data'];
+  if (!initData) {
+    // admin endpoints use raw telegramId
+    return (query && query.telegramId) || (body && body.telegramId) || null;
+  }
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  const user = validateInitData(initData, botToken);
+  return user ? String(user.id) : null;
+}
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
-  }
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Telegram-Init-Data');
+  if (req.method === 'OPTIONS') { res.status(200).end(); return; }
 
-  const telegramId =
-    (req.method === 'GET' && req.query.telegramId) ||
-    (req.method === 'POST' && req.body && req.body.telegramId);
+  const telegramId = extractTelegramId(req.headers, req.body, req.query);
 
   if (!telegramId) {
-    res.status(400).json({ error: 'telegramId is required' });
+    res.status(401).json({ error: 'unauthorized' });
     return;
   }
 
@@ -25,13 +32,14 @@ module.exports = async function handler(req, res) {
         name TEXT,
         username TEXT,
         data JSONB NOT NULL DEFAULT '{}'::jsonb,
+        banned BOOLEAN NOT NULL DEFAULT false,
         updated_at TIMESTAMPTZ DEFAULT NOW()
       )
     `;
 
     if (req.method === 'GET') {
       const { rows } = await sql`
-        SELECT data, name, username, updated_at
+        SELECT data, name, username, banned, updated_at
         FROM players
         WHERE telegram_id = ${telegramId}
       `;
@@ -43,6 +51,7 @@ module.exports = async function handler(req, res) {
         data: rows[0].data,
         name: rows[0].name,
         username: rows[0].username,
+        banned: !!rows[0].banned,
         updatedAt: rows[0].updated_at
       });
       return;
@@ -50,6 +59,16 @@ module.exports = async function handler(req, res) {
 
     if (req.method === 'POST') {
       const { data, name, username } = req.body || {};
+
+      // Block banned players from saving
+      const { rows: check } = await sql`
+        SELECT banned FROM players WHERE telegram_id = ${telegramId}
+      `;
+      if (check.length > 0 && check[0].banned) {
+        res.status(403).json({ error: 'banned' });
+        return;
+      }
+
       const payload = data && typeof data === 'object' ? JSON.stringify(data) : '{}';
       const { rows } = await sql`
         INSERT INTO players (telegram_id, name, username, data, updated_at)

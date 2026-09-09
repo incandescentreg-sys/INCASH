@@ -30,38 +30,24 @@ package.json    — зависимости (@vercel/postgres)
 npm i -g vercel
 vercel                    # первый раз — авторизация
 vercel link               # привязать к Vercel проекту
-vercel env add POSTGRES_URL  # укажи URL из Storage → Vercel Postgres
 vercel --prod             # деплой
 ```
 
 ### Настройка Vercel Postgres (Neon)
 1. В [vercel.com](https://vercel.com) → Storage → **Vercel Postgres** → Create.
 2. После создания Vercel сам прокидывает переменную `POSTGRES_URL` в окружение.
-3. Если делаешь `vercel env add POSTGRES_URL` — скопируй из панели Storage.
+3. Передеплой (Re-deploy), чтобы API увидел БД.
+
+### Настройка администратора
+1. Узнай свой Telegram ID (например, @getmyid_bot).
+2. В Vercel Dashboard → Project → Settings → Environment Variables:
+   - `ADMIN_IDS` = `123456789` (твой ID, если несколько — через запятую: `123,456`)
+   - `TELEGRAM_BOT_TOKEN` = токен твоего бота от BotFather
+3. Передеплой проект.
+4. В профиле появится кнопка **🔧 Разработчик** — только у тех, чей ID в `ADMIN_IDS`.
 
 ### Настройка Telegram Bot
 - BotFather: `/newbot` → `/mybots` → Bot Settings → Mini App → укажи URL с Vercel.
-
-## Как задеплоить на Vercel
-
-**Вариант А — Vercel CLI:**
-```bash
-npm i -g vercel
-vercel        # первый раз — залогиниться и подтвердить настройки
-vercel --prod # прод-деплой
-```
-
-**Вариант Б — GitHub + Vercel:**
-1. Залей репозиторий на GitHub.
-2. На [vercel.com](https://vercel.com) → `Add New Project` → импортируй репозиторий.
-3. Framework Preset: `Other` (это статика, сборка не нужна).
-4. Deploy. Получишь ссылку вида `https://lucky-city.vercel.app`.
-
-## Как подключить к Telegram BotFather
-1. В BotFather: `/newbot` → создай бота.
-2. `/newapp` (или `/setmenubutton`) → привяжи Mini App к боту, укажи URL с Vercel
-   (обязательно `https://`).
-3. Запусти бота и открой меню — откроется приложение; имя юзера подхватится автоматически.
 
 Для локальной проверки: `npx serve .` (или любой статик-сервер) и открой `http://localhost:3000`.
 

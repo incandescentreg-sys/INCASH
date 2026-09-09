@@ -32,13 +32,14 @@
     name: ''
   };
 
-  let tg = null;
-  let tgUser = null;          // { id, first_name, last_name, username }
-  let lastLocalSave = '';
-  let saveTimer = null;
-  let serverReady = false;    // server save enabled once we know telegramId
-  let saving = false;
-  let pendingSave = false;
+let tg = null;
+let tgUser = null;
+let lastLocalSave = '';
+let saveTimer = null;
+let serverReady = false;
+let saving = false;
+let pendingSave = false;
+let isBanned = false;
 
   /* ---------- helpers ---------- */
 
@@ -130,7 +131,9 @@
       const res = await fetch('/api/state?telegramId=' + encodeURIComponent(telegramId()));
       if (!res.ok) throw new Error('server get failed: ' + res.status);
       const json = await res.json();
-      return json && json.data ? json.data : null;
+      if (!json || !json.data) return null;
+      isBanned = !!json.banned;
+      return json.data;
     } catch (e) {
       console.warn('server get error', e);
       return null;
@@ -140,6 +143,7 @@
   /* ---------- core ---------- */
 
   function save() {
+    if (isBanned) return;
     localSave();
     serverSave(false);
   }
@@ -466,14 +470,14 @@
     if (telegramId()) {
       const server = await serverGet();
       if (server) {
-        const serverTs = new Date(server.updatedAt || 0).getTime();
-        const localWasPresent = !!localStorage.getItem(LOCAL_KEY);
-        // If server is our source of truth, or local was never saved → take server
         const localLast = state.lastIncome || 0;
         const serverLast = server.lastIncome || 0;
-        if (!localWasPresent || serverLast >= localLast) {
+        if (!localStorage.getItem(LOCAL_KEY) || serverLast >= localLast) {
           Object.assign(state, server);
         }
+      }
+      if (isBanned) {
+        document.getElementById('banOverlay').classList.remove('hidden');
       }
     }
 
@@ -514,6 +518,9 @@
       document.getElementById('modal').classList.add('hidden');
     });
 
+    // Init admin panel (checks if current user is admin)
+    if (window.Admin) Admin.init();
+
     // 6. Periodical income tick + save
     setInterval(() => {
       updateIncomeCard();
@@ -536,7 +543,8 @@
     win,
     toast,
     modal,
-    format
+    format,
+    showScreen
   };
 
   document.addEventListener('DOMContentLoaded', init);

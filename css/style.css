@@ -616,3 +616,38 @@ body { position: fixed; inset: 0; overflow: hidden; }
 @media (min-width: 481px) {
   #app, #bottomnav { border-left: 1px solid var(--line); border-right: 1px solid var(--line); }
 }
+
+/* Admin */
+.admin-panel { display: none; }
+.admin-panel.active { display: block; animation: fadeIn .2s ease; }
+.admin-row { display: flex; justify-content: space-between; font-size: 14px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.admin-section-title { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .7px; margin: 16px 0 8px; }
+.admin-input-row { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
+.admin-input-row .bet-input { flex: 1; }
+.admin-player-list { display: flex; flex-direction: column; gap: 6px; margin: 10px 0; }
+.admin-player-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 13px;
+}
+.admin-player-card .ap-row { display: flex; justify-content: space-between; align-items: center; gap: 6px; flex-wrap: wrap; }
+.admin-player-card .ap-name { font-weight: 700; }
+.admin-player-card .ap-id { color: var(--muted); font-size: 11px; }
+.admin-player-card .ap-balance { color: var(--gold); font-weight: 700; }
+.admin-player-card .ap-banned { color: var(--red); font-size: 11px; }
+.admin-player-card .ap-actions { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+.admin-player-card .ap-actions .btn { font-size: 12px; padding: 5px 8px; }
+
+/* Ban overlay */
+#banOverlay {
+  position: fixed; inset: 0; z-index: 300;
+  background: rgba(5,6,14,.85);
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 14px;
+  padding: 24px;
+}
+.ban-ico { font-size: 48px; }
+.ban-title { font-size: 20px; font-weight: 800; }
+.ban-text { font-size: 14px; color: var(--muted); text-align: center; max-width: 280px; }
