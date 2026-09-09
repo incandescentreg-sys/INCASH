@@ -1,0 +1,13 @@
+{
+  "name": "incash-mini-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "INCASH — Telegram Mini App (мини-казино с виртуальной валютой, недвижимостью и машинами). Серверное сохранение через Vercel Postgres.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "dependencies": {
+    "@vercel/postgres": "^0.10.0"
+  }
+}
